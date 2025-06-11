@@ -1,68 +1,94 @@
-// App.jsx
+// src/App.jsx
 import React from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import { ToastContainer } from "react-toastify";
+
+// Public pages
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Products from "./pages/Products";
+import ProductDetails from "./pages/ProductDetails";
 import Contacts from "./pages/Contacts";
-import FAQ from "./pages/FAQ";
+import Faq from "./pages/FAQ";
 import WhyVelora from "./pages/WhyVelora";
-import Shop from './pages/Shop';
-import QuizForm from './pages/QuizForm';
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Unauthorized from "./pages/Unauthorized";
 
-// Admin
-
+// Admin layout and pages
 import AdminLayout from "./components/AdminLayout";
-import Dashboard from "./pages/admin/Dashboard";
+import AdminDashboard from "./pages/admin/Dashboard";
 import ManageProducts from "./pages/admin/ManageProducts";
-import Notifications from "./pages/admin/Notifications";
+import ManageOrders from "./pages/admin/ManageOrders";
 import Feedback from "./pages/admin/Feedback";
-import Activities from "./pages/admin/Activities";
+import Notifications from "./pages/admin/Notifications";
 import SwitchView from "./pages/admin/SwitchView";
-import { ToastContainer } from "react-toastify";
 
-const App = () => {
-  const location = useLocation(); // Hook to get the current path
-  const isAdminRoute = location.pathname.startsWith("/admin"); // Check if admin page
+// Protected route component
+import PrivateRoute from "./routes/PrivateRoutes";
+
+// Layout wrapper to hide footer on admin pages
+const LayoutWrapper = ({ children }) => {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith("/admin");
 
   return (
     <>
-      {/* Toasts System */}
-      <ToastContainer />
-
-      {/* Show Navbar only on non-admin pages */}
       {!isAdminRoute && <Navbar />}
-
-      {/* Routing */}
-      <Routes>
-        {/* User Pages */}
-        <Route path="/" element={<Home />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/shop" element={<Shop />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/products" element={<Products />} />
-        <Route path="/contacts" element={<Contacts />} />
-        <Route path="/faq" element={<FAQ />} />
-        <Route path="/whyvelora" element={<WhyVelora />} />
-        <Route path="/quiz" element={<QuizForm />} />
-
-        {/* Admin Pages */}
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="products" element={<ManageProducts />} />
-          <Route path="notifications" element={<Notifications />} />
-          <Route path="feedback" element={<Feedback />} />
-          <Route path="activities" element={<Activities />} />
-          <Route path="switchview" element={<SwitchView />} />
-        </Route>
-      </Routes>
-
-      {/* Show Footer only on non-admin pages */}
+      {children}
       {!isAdminRoute && <Footer />}
     </>
+  );
+};
+
+const App = () => {
+  return (
+    <BrowserRouter>
+      <LayoutWrapper>
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="colored"
+        />
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/unauthorized" element={<Unauthorized />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contacts" element={<Contacts />} />
+          <Route path="/faq" element={<Faq />} />
+          <Route path="/whyvelora" element={<WhyVelora />} />
+          <Route path="/products/:id" element={<ProductDetails />} />
+
+          {/* Protected Route Example */}
+          <Route element={<PrivateRoute />}>
+            <Route path="/products" element={<Products />} />
+          </Route>
+
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="products" element={<ManageProducts />} />
+            <Route path="orders" element={<ManageOrders />} />
+            <Route path="feedback" element={<Feedback />} />
+            <Route path="notifications" element={<Notifications />} />
+            <Route path="switchview" element={<SwitchView />} />
+          </Route>
+        </Routes>
+      </LayoutWrapper>
+    </BrowserRouter>
   );
 };
 

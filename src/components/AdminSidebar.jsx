@@ -7,9 +7,9 @@ const AdminSidebar = () => {
   const links = [
     { path: "/admin/dashboard", label: "Dashboard", icon: <FaTachometerAlt /> },
     { path: "/admin/products", label: "Manage Products", icon: <FaBoxOpen /> },
+    { path: "/admin/orders", label: "Manage Orders", icon: <FaChartBar/> },
     { path: "/admin/notifications", label: "Notifications", icon: <FaBell /> },
     { path: "/admin/feedback", label: "Feedback", icon: <FaComments /> },
-    { path: "/admin/activities", label: "Activities", icon: <FaChartBar /> },
     { path: "/admin/switchview", label: "Switch View", icon: <FaExchangeAlt /> },
   ];
 

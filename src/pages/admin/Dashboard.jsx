@@ -1,158 +1,292 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import AdminTopBar from "../../components/AdminTopBar";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
+import { motion } from "framer-motion";
 import CountUp from "react-countup";
-import { FaShoePrints, FaChartLine, FaDollarSign, FaUsers } from "react-icons/fa";
-
-const salesData = [
-  { date: "22 Jul", income: 4000, expense: 2400 },
-  { date: "23 Jul", income: 3000, expense: 1398 },
-  { date: "24 Jul", income: 2000, expense: 9800 },
-  { date: "25 Jul", income: 2780, expense: 3908 },
-  { date: "26 Jul", income: 1890, expense: 4800 },
-  { date: "27 Jul", income: 2390, expense: 3800 },
-  { date: "28 Jul", income: 3490, expense: 4300 },
-];
-
-const customerData = [
-  { date: "22 Jul", newCustomers: 240 },
-  { date: "23 Jul", newCustomers: 180 },
-  { date: "24 Jul", newCustomers: 300 },
-  { date: "25 Jul", newCustomers: 270 },
-  { date: "26 Jul", newCustomers: 220 },
-  { date: "27 Jul", newCustomers: 320 },
-  { date: "28 Jul", newCustomers: 280 },
-];
+import { FaChartLine, FaDollarSign, FaUsers } from "react-icons/fa";
 
 const Dashboard = () => {
+  const [searchText, setSearchText] = useState("");
+  const [filteredData, setFilteredData] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [timeView, setTimeView] = useState("Weekly");
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [topProducts, setTopProducts] = useState([]);
+
+  const COLORS = ["#FF4081", "#4ADE80", "#6554E8", "#00B2FF", "#FFB347"];
+
+  const [stats, setStats] = useState({
+    totalRevenue: 0,
+    totalOrders: 0,
+    totalCustomers: 0,
+  });
+
+  const fetchWithAuth = (url) => {
+    return fetch(url, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+  };
+
+  useEffect(() => {
+    fetchWithAuth("https://localhost:7182/api/Admin/sales/total")
+      .then((res) => res.json())
+      .then((data) =>
+        setStats((prev) => ({ ...prev, totalRevenue: data }))
+      );
+
+    fetchWithAuth("https://localhost:7182/api/Admin/sales/orders/count")
+      .then((res) => res.json())
+      .then((data) =>
+        setStats((prev) => ({ ...prev, totalOrders: data }))
+      );
+
+    fetchWithAuth("https://localhost:7182/api/Admin/users/count")
+      .then((res) => res.json())
+      .then((data) =>
+        setStats((prev) => ({ ...prev, totalCustomers: data.usersCount }))
+      );
+
+    fetchWithAuth("https://localhost:7182/api/Admin/sales/recent-orders")
+      .then((res) => res.json())
+      .then((data) => {
+        setRecentOrders(data);
+        setFilteredData(data);
+      });
+
+    fetchWithAuth("https://localhost:7182/api/Admin/sales/top-products")
+      .then((res) => res.json())
+      .then((data) => {
+        setTopProducts(data);
+        setFilteredProducts(data);
+      });
+  }, []);
+
+  const handleSearch = (value) => {
+    setSearchText(value);
+
+    const filteredOrders = recentOrders.filter(
+      (data) =>
+        (data.orderDate &&
+          data.orderDate.toLowerCase().includes(value.toLowerCase())) ||
+        (data.totalAmount && data.totalAmount.toString().includes(value))
+    );
+    setFilteredData(filteredOrders);
+
+    const filteredTopProducts = topProducts.filter(
+      (product) =>
+        (product.productName &&
+          product.productName.toLowerCase().includes(value.toLowerCase())) ||
+        (product.salesCount && product.salesCount.toString().includes(value))
+    );
+    setFilteredProducts(filteredTopProducts);
+  };
+
   return (
     <>
       <AdminSidebar />
-      <AdminTopBar />
+      <AdminTopBar searchText={searchText} onSearch={handleSearch} />
 
-      <div style={{
-        marginLeft: "250px",
-        paddingTop: "80px",
-        padding: "80px 25px 25px 25px",
-        backgroundColor: "#F3F4F6",
-        minHeight: "100vh"
-      }}>
-        {/* Overview Cards */}
-        <div className="row g-4 mb-4">
+      <div
+        style={{
+          marginLeft: "250px",
+          paddingTop: "80px",
+          padding: "80px 25px 25px 25px",
+          backgroundColor: "#F3F4F6",
+          minHeight: "100vh",
+        }}
+      >
+        {/* Cards Section */}
+        <motion.div
+          className="row g-4 mb-4 d-flex align-items-stretch"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
           {[
-            { title: "Total Revenue", value: 82650, suffix: "$", icon: <FaDollarSign />, change: "+11%" },
-            { title: "Total Orders", value: 1645, suffix: "", icon: <FaChartLine />, change: "+11%" },
-            { title: "Total Customers", value: 1462, suffix: "", icon: <FaUsers />, change: "-17%" },
+            {
+              title: "Total Revenue",
+              value: stats.totalRevenue,
+              suffix: "$",
+              icon: <FaDollarSign />,
+              change: "+11%",
+            },
+            {
+              title: "Total Orders",
+              value: stats.totalOrders,
+              suffix: "",
+              icon: <FaChartLine />,
+              change: "+11%",
+            },
+            {
+              title: "Total Customers",
+              value: stats.totalCustomers,
+              suffix: "",
+              icon: <FaUsers />,
+              change: "-17%",
+            },
           ].map((card, index) => (
-            <div className="col-md-4" key={index}>
+            <motion.div
+              key={index}
+              className="col-md-4 d-flex"
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 180 }}
+            >
               <div
-                className="p-3 d-flex flex-column gap-2 shadow-sm rounded"
-                style={{ backgroundColor: "#ffffff", border: "1px solid #E5E7EB" }}
+                className="p-3 rounded shadow flex-fill d-flex flex-column justify-content-between"
+                style={{
+                  backgroundColor: "#ffffff",
+                  border: "1px solid #E5E7EB",
+                  transition: "0.3s",
+                  boxShadow:
+                    "0 0 10px rgba(101, 84, 232, 0.1), 0 6px 12px rgba(0,0,0,0.03)",
+                }}
               >
                 <div className="d-flex justify-content-between align-items-center">
                   <div>
-                    <p className="fw-semibold text-muted mb-1" style={{ fontSize: "14px" }}>{card.title} (Last 30 days)</p>
-                    <h3 className="fw-bold mb-0">
-                      {card.suffix}<CountUp end={card.value} duration={2} separator="," />
-                    </h3>
+                    <p
+                      className="text-muted fw-medium mb-1"
+                      style={{ fontSize: "12px" }} // أصغر
+                    >
+                      {card.title} (Last 30 days)
+                    </p>
+                    <h4 className="fw-bold text-dark" style={{ fontSize: "1.5rem" }}>
+                      {card.suffix}
+                      <CountUp end={card.value} duration={1.4} separator="," />
+                    </h4>
                   </div>
-                  <div
-                    className="rounded-circle d-flex align-items-center justify-content-center"
-                    style={{ width: "40px", height: "40px", backgroundColor: "#E0F2FE", color: "#0284C7" }}
+                  <motion.div
+                    whileHover={{ rotate: 15 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                    style={{
+                      backgroundColor: "#6554E8",
+                      color: "#fff",
+                      width: "36px", // أصغر
+                      height: "36px", // أصغر
+                      borderRadius: "50%",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
                   >
                     {card.icon}
-                  </div>
+                  </motion.div>
                 </div>
                 <span
                   className="fw-semibold"
-                  style={{ color: card.change.includes("+") ? "#16A34A" : "#DC2626", fontSize: "14px" }}
+                  style={{
+                    color: card.change.includes("+") ? "#4ADE80" : "#EF4444",
+                    fontSize: "12px", // أصغر
+                  }}
                 >
                   {card.change}
                 </span>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
-        {/* Chart Section: Two Side-by-Side Charts */}
+        {/* Charts */}
         <div className="row g-4 mb-4">
-          {/* Sales Chart */}
-          <div className="col-lg-6">
-            <div className="shadow-sm rounded p-3 h-100" style={{ backgroundColor: "#ffffff", border: "1px solid #E5E7EB" }}>
+          {/* Orders Line Chart */}
+          <motion.div
+            className="col-lg-6"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div
+              className="shadow rounded p-3 h-100"
+              style={{ backgroundColor: "#fff", border: "1px solid #e5e7eb" }}
+            >
               <div className="d-flex justify-content-between align-items-center mb-3">
-                <h5 className="fw-bold">Sales Analytics</h5>
-                <select className="form-select form-select-sm w-auto">
-                  <option>Jul 2023</option>
-                  <option>Aug 2023</option>
-                </select>
-              </div>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={salesData}>
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="income" stroke="#10B981" strokeWidth={2} />
-                  <Line type="monotone" dataKey="expense" stroke="#EF4444" strokeWidth={2} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* New Customers Chart */}
-          <div className="col-lg-6">
-            <div className="shadow-sm rounded p-3 h-100" style={{ backgroundColor: "#ffffff", border: "1px solid #E5E7EB" }}>
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <h5 className="fw-bold">New Customers Analytics</h5>
-                <select className="form-select form-select-sm w-auto">
-                  <option>Jul 2023</option>
-                  <option>Aug 2023</option>
-                </select>
-              </div>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={customerData}>
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="newCustomers" stroke="#3B82F6" strokeWidth={2} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-
-        {/* Top Selling Products */}
-        <div className="shadow-sm rounded p-3" style={{ backgroundColor: "#ffffff", border: "1px solid #E5E7EB" }}>
-          <h5 className="fw-bold mb-3">Top Selling Products</h5>
-          <div className="d-flex gap-3 flex-wrap">
-            {["acne cream", "serum", "product 1", "product 2"].map((product, index) => (
-              <div
-                key={index}
-                className="d-flex flex-column align-items-center justify-content-center rounded shadow-sm"
-                style={{
-                  width: "140px",
-                  padding: "15px",
-                  backgroundColor: "#F3F4F6",
-                  border: "1px solid #E5E7EB"
-                }}
-              >
-                <div
+                <h5 className="fw-bold text-dark mb-0">
+                  Recent Orders Overview
+                </h5>
+                <select
+                  className="form-select form-select-sm"
+                  value={timeView}
+                  onChange={(e) => setTimeView(e.target.value)}
                   style={{
-                    width: "100px",
-                    height: "80px",
-                    backgroundColor: "#E5E7EB",
-                    borderRadius: "8px",
+                    width: "120px",
+                    borderColor: "#6554E8",
+                    color: "#6554E8",
+                    fontWeight: "500",
                   }}
-                  className="mb-2 d-flex justify-content-center align-items-center"
                 >
-                  <FaShoePrints size={24} color="#6B7280" />
-                </div>
-                <span className="fw-semibold text-center" style={{ fontSize: "14px" }}>
-                  {product}
-                </span>
+                  <option>Daily</option>
+                  <option>Weekly</option>
+                  <option>Monthly</option>
+                </select>
               </div>
-            ))}
-          </div>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={filteredData}>
+                  <XAxis dataKey="orderDate" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="totalAmount"
+                    stroke="#22C55E"
+                    strokeWidth={2}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </motion.div>
+
+          {/* Top Products Pie Chart */}
+          <motion.div
+            className="col-lg-6"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div
+              className="shadow rounded p-3 h-100"
+              style={{ backgroundColor: "#fff", border: "1px solid #e5e7eb" }}
+            >
+              <h5 className="fw-bold text-dark mb-3">Top Selling Products</h5>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={filteredProducts.map((p) => ({
+                      ...p,
+                      productName: `Product #${p.productId}`,
+                      salesCount: p.totalQuantity,
+                    }))}
+                    dataKey="salesCount"
+                    nameKey="productName"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    label={({ name, percent }) =>
+                      `${name} (${(percent * 100).toFixed(0)}%)`
+                    }
+                  >
+                    {filteredProducts.map((_, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </motion.div>
         </div>
       </div>
     </>

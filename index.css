@@ -20,5 +20,16 @@ body {
     border-radius: 1rem;
   }
 
+  src/styles/App.css or src/styles/index.css
+
+/* Adjust margin only for the Manage Orders page */
+.manage-orders {
+  margin-left: 250px;  /* Adjust this value as per the sidebar width */
+}
+
+.manage-orders .container {
+  margin-top: 20px;  /* Adjust as needed to provide some spacing from the top */
+}
+
 
   

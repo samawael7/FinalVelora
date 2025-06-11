@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const SwitchView = () => {
-  return (
-    <div>
-      <h1>Activities Page</h1>
-    </div>
-  );
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Redirect to home page
+    navigate("/", { replace: true });
+  }, [navigate]);
+
+  return null; // No UI needed, just redirect
 };
 
-export default SwitchView; // ✅ THIS IS VERY IMPORTANT
+export default SwitchView;
