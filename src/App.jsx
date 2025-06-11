@@ -16,6 +16,13 @@ import WhyVelora from "./pages/WhyVelora";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Unauthorized from "./pages/Unauthorized";
+import Cart from "./pages/Cart.jsx";
+import { CartProvider } from "./Contexts/CartContext.jsx";
+import Profile from "./pages/Profile.jsx";
+import NotFound from "./pages/NotFound.jsx";
+import Orders from "./pages/Orders.jsx";
+import Admin from "./pages/Admin.jsx";
+import Checkout from "./pages/Checkout.jsx";
 
 // Admin layout and pages
 import AdminLayout from "./components/AdminLayout";
@@ -46,48 +53,58 @@ const LayoutWrapper = ({ children }) => {
 const App = () => {
   return (
     <BrowserRouter>
-      <LayoutWrapper>
-        <ToastContainer
-          position="top-right"
-          autoClose={5000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="colored"
-        />
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/unauthorized" element={<Unauthorized />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contacts" element={<Contacts />} />
-          <Route path="/faq" element={<Faq />} />
-          <Route path="/whyvelora" element={<WhyVelora />} />
-          <Route path="/products/:id" element={<ProductDetails />} />
+      <CartProvider>
+        <Navbar />
+        <LayoutWrapper>
+          <ToastContainer
+            position="top-right"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="colored"
+          />
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contacts" element={<Contacts />} />
+            <Route path="/faq" element={<Faq />} />
+            <Route path="/whyvelora" element={<WhyVelora />} />
+            <Route path="/products/:id" element={<ProductDetails />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="*" element={<NotFound />} />
 
-          {/* Protected Route Example */}
-          <Route element={<PrivateRoute />}>
-            <Route path="/products" element={<Products />} />
-          </Route>
+            {/* Protected Route Example */}
+            <Route element={<PrivateRoute />}>
+              <Route path="/products" element={<Products />} />
+            </Route>
 
-          {/* Admin Routes */}
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="products" element={<ManageProducts />} />
-            <Route path="orders" element={<ManageOrders />} />
-            <Route path="feedback" element={<Feedback />} />
-            <Route path="notifications" element={<Notifications />} />
-            <Route path="switchview" element={<SwitchView />} />
-          </Route>
-        </Routes>
-      </LayoutWrapper>
+            {/* Admin Routes */}
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="products" element={<ManageProducts />} />
+              <Route path="orders" element={<ManageOrders />} />
+              <Route path="feedback" element={<Feedback />} />
+              <Route path="notifications" element={<Notifications />} />
+              <Route path="switchview" element={<SwitchView />} />
+            </Route>
+          </Routes>
+        </LayoutWrapper>
+        <Footer />
+      </CartProvider>
     </BrowserRouter>
   );
 };
